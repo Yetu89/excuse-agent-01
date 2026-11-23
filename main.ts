@@ -6,8 +6,18 @@ const ENTRY =
 
 const outputDir = process.env.OUTPUT_DIR ?? "/output";
 
-if (ENTRY.length < 1 || ENTRY.length > 200) {
-  throw new Error(`entry must be 1-200 characters, got ${ENTRY.length}`);
+// Count code points, not UTF-16 code units, so the 1-200 gate matches the
+// scorer's character count even for non-BMP characters.
+const length = [...ENTRY].length;
+
+if (length < 1 || length > 200) {
+  throw new Error(`entry must be 1-200 characters, got ${length}`);
+}
+if (ENTRY.trim().length === 0) {
+  throw new Error("entry must not be only white space");
+}
+if (/[\r\n]/.test(ENTRY)) {
+  throw new Error("entry must be a single line: line breaks are not allowed");
 }
 if (ENTRY.endsWith("\n")) {
   throw new Error("entry must not end with a newline");
@@ -15,4 +25,4 @@ if (ENTRY.endsWith("\n")) {
 
 mkdirSync(outputDir, { recursive: true });
 writeFileSync(join(outputDir, "entry.txt"), ENTRY, "utf8");
-console.log(`wrote entry.txt (${ENTRY.length} characters) to ${outputDir}`);
+console.log(`wrote entry.txt (${length} characters) to ${outputDir}`);
